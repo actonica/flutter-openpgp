@@ -18,6 +18,7 @@ import openpgp.KeyOptions;
 import openpgp.KeyPair;
 import openpgp.Openpgp;
 import openpgp.Options;
+import openpgp.PublicKeyMetadata;
 
 /**
  * OpenpgpPlugin
@@ -69,6 +70,12 @@ public class OpenpgpPlugin implements FlutterPlugin, MethodCallHandler {
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
 
         switch (call.method) {
+            case "getPublicKeyFingerprint":
+                getPublicKeyFingerprint(
+                        (String) call.argument("publicKey"),
+                        result
+                );
+                break;
             case "decrypt":
                 decrypt(
                         (String) call.argument("message"),
@@ -227,6 +234,19 @@ public class OpenpgpPlugin implements FlutterPlugin, MethodCallHandler {
         };
 
         handler.post(local);
+    }
+
+    private void getPublicKeyFingerprint(final String publicKey, final Result promise) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    PublicKeyMetadata publicKeyMetadata = instance.getPublicKeyMetadata(publicKey);
+                    success(promise, publicKeyMetadata.getFingerprint());
+                } catch (Exception e) {
+                    error(promise, "error", e.getMessage(), null);
+                }
+            }
+        }).start();
     }
 
     private void decrypt(final String message, final String privateKey, final String passphrase, final Result promise) {

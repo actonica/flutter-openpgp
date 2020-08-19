@@ -139,6 +139,14 @@ class OpenPGP {
     );
   }
 
+  static Future<String> getPublicKeyFingerprint(String publicKey) async {
+    var result = await _channel.invokeMethod('getPublicKeyFingerprint', {
+      "publicKey": publicKey,
+    });
+
+    return result;
+  }
+
   static _getOptionsMap(Options options) {
     var result = {};
     if (options == null) {
