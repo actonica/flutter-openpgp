@@ -77,7 +77,10 @@
       
   } else if ([@"generate" isEqualToString:call.method]) {
       [self generate:[call arguments][@"options"] result:result];
-  } else {
+  } else if ([@"getPublicKeyFingerprint" isEqualToString:call.method]) {
+      [self getPublicKeyFingerprint:[call arguments][@"publicKey"] result:result];
+  }
+  else {
     result(FlutterMethodNotImplemented);
   }
 }
@@ -350,6 +353,26 @@
                                   @"publicKey":output.publicKey,
                                   @"privateKey":output.privateKey,
                                 }];
+                }
+            }
+            @catch (NSException * e) {
+                [self result:result output:[FlutterError errorWithCode:e.name message:e.reason details:nil]];
+            }
+    });
+    
+}
+
+- (void)getPublicKeyFingerprint:(NSString *)publicKey result:(FlutterResult)result {
+    
+    dispatch_async(queue, ^(void){
+            @try {
+                NSError *error;
+              OpenpgpPublicKeyMetadata * metadata = [self->instance getPublicKeyMetadata:publicKey error:&error];
+
+                if(error!=nil){
+                    [self result:result output:[FlutterError errorWithCode:[NSString stringWithFormat:@"%ld", error.code] message:error.description details:nil]];
+                }else{
+                  [self result:result output:metadata.fingerprint];
                 }
             }
             @catch (NSException * e) {
